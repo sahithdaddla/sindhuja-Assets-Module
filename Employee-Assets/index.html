@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Asset Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: #f0f2f5;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: #2563eb;
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+        }
+
+        .btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 16px;
+        }
+
+        .btn:hover {
+            background: #1d4ed8;
+        }
+
+        .btn:disabled {
+            background: #93c5fd;
+            cursor: not-allowed;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        input.error, textarea.error, select.error {
+            border-color: #ef4444;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: none;
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 0.875rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .request-form {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>ASSETS REQUEST PORTAL</h2>
+        </div>
+
+        <div class="request-form">
+            <div class="input-group">
+                <label for="employeeId">Employee ID</label>
+                <input type="text" id="employeeId" placeholder="Enter your Employee ID (Format: ATS0XXX)">
+                <div id="employeeIdError" class="error-message">Invalid Employee ID. It must start with ATS uppercase letters, followed by '0', and end with 3 digits.</div>
+            </div>
+            <div class="input-group">
+                <label for="employeeName">Employee Full Name</label>
+                <input type="text" id="employeeName" placeholder="Enter your name (5-60 alphabetic characters)" required>
+                <div id="employeeNameError" class="error-message">Name must be 5-60 alphabetic characters (excluding spaces)</div>
+            </div>
+            <div class="input-group">
+                <label for="assetType">Asset Type</label>
+                <select id="assetType">
+                    <option value="laptop">Laptop</option>
+                    <option value="desktop">Desktop</option>
+                    <option value="mouse">Mouse</option>
+                    <option value="keyboard">Keyboard</option>
+                    <option value="laptopbag">Laptop Bag</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="input-group" id="otherAssetGroup" style="display: none;">
+                <label for="otherAsset">Specify Other Asset</label>
+                <input type="text" id="otherAsset" placeholder="Specify asset (5-50 alphabetic characters)">
+                <div id="otherAssetError" class="error-message">Asset must be 5-50 alphabetic characters (excluding spaces)</div>
+            </div>
+            <div class="input-group">
+                <label for="reason">Reason for Request</label>
+                <textarea id="reason" placeholder="Enter reason for request (5-500 characters)"></textarea>
+                <div id="reasonError" class="error-message">Reason must be 5-500 characters long (excluding spaces) and contain at least one letter</div>
+            </div>
+            <button class="btn" id="submitBtn" onclick="submitRequest()" disabled>Submit Request</button>
+        </div>
+    </div>
+
+    <script>
+        function getCharCountExcludingSpaces(str) {
+            return str.replace(/\s/g, '').length;
+        }
+
+        function validateEmployeeId(element) {
+            const value = element.value.trim();
+            const errorElement = document.getElementById('employeeIdError');
+            const employeeIdPattern = /^ATS0(?!000)\d{3}$/;
+            
+            const isValid = employeeIdPattern.test(value);
+            
+            element.classList.toggle('error', !isValid);
+            errorElement.style.display = isValid ? 'none' : 'block';
+            
+            updateSubmitButton();
+            
+            return isValid;
+        }
+
+        function validateNameField(element, errorId, min, max) {
+            const value = element.value;
+            const charCountExcludingSpaces = getCharCountExcludingSpaces(value);
+            const errorElement = document.getElementById(errorId);
+            
+            const onlyAlphabetsWithSpaces = /^[a-zA-Z\s]*$/.test(value);
+            const validLength = charCountExcludingSpaces >= min && charCountExcludingSpaces <= max;
+            
+            const isValid = onlyAlphabetsWithSpaces && validLength;
+            
+            element.classList.toggle('error', !isValid);
+            errorElement.style.display = isValid ? 'none' : 'block';
+
+            updateSubmitButton();
+            
+            return isValid;
+        }
+
+        function validateOtherAssetField(element, errorId, min, max) {
+            const value = element.value;
+            const charCountExcludingSpaces = getCharCountExcludingSpaces(value);
+            const errorElement = document.getElementById(errorId);
+            
+            const onlyAlphabetsWithSpaces = /^[a-zA-Z\s]*$/.test(value);
+            const validLength = charCountExcludingSpaces >= min && charCountExcludingSpaces <= max;
+            
+            const isValid = onlyAlphabetsWithSpaces && validLength;
+            
+            element.classList.toggle('error', !isValid);
+            errorElement.style.display = isValid ? 'none' : 'block';
+
+            updateSubmitButton();
+            
+            return isValid;
+        }
+
+        function validateReasonField(element, errorId) {
+            const value = element.value;
+            const charCountExcludingSpaces = getCharCountExcludingSpaces(value);
+            const errorElement = document.getElementById(errorId);
+            
+            const hasLetter = /[a-zA-Z]/.test(value);
+            const validLength = charCountExcludingSpaces >= 5 && charCountExcludingSpaces <= 500;
+            
+            const isValid = validLength && hasLetter;
+            
+            element.classList.toggle('error', !isValid);
+            errorElement.style.display = isValid ? 'none' : 'block';
+
+            updateSubmitButton();
+            
+            return isValid;
+        }
+
+        function updateSubmitButton() {
+            const employeeId = document.getElementById('employeeId').value.trim();
+            const employeeName = document.getElementById('employeeName').value;
+            const assetType = document.getElementById('assetType').value;
+            const otherAsset = document.getElementById('otherAsset').value;
+            const reason = document.getElementById('reason').value;
+            const submitBtn = document.getElementById('submitBtn');
+            
+            const employeeIdPattern = /^ATS0(?!000)\d{3}$/;
+            const employeeIdValid = employeeIdPattern.test(employeeId);
+            
+            const employeeNameValid = getCharCountExcludingSpaces(employeeName) >= 5 && 
+                                     getCharCountExcludingSpaces(employeeName) <= 60 &&
+                                     /^[a-zA-Z\s]*$/.test(employeeName);
+            
+            const otherAssetValid = assetType !== 'other' || (
+                getCharCountExcludingSpaces(otherAsset) >= 5 &&
+                getCharCountExcludingSpaces(otherAsset) <= 50 &&
+                /^[a-zA-Z\s]*$/.test(otherAsset)
+            );
+            
+            const reasonValid = getCharCountExcludingSpaces(reason) >= 5 && 
+                               getCharCountExcludingSpaces(reason) <= 500 &&
+                               /[a-zA-Z]/.test(reason);
+            
+            const isValid = employeeIdValid && employeeNameValid && otherAssetValid && reasonValid;
+            
+            submitBtn.disabled = !isValid;
+        }
+
+        function validateEmployeeIdInput(event) {
+            const currentValue = document.getElementById('employeeId').value;
+            
+            if (event.key === "Backspace" || 
+                event.key === "Delete" || 
+                event.key === "ArrowLeft" || 
+                event.key === "ArrowRight" || 
+                event.key === "Tab" ||
+                event.ctrlKey || 
+                event.metaKey) {
+                return true;
+            }
+            
+            if (event.clipboardData) {
+                let text = event.clipboardData.getData('text');
+                text = text.replace(/[^a-zA-Z0-9\s]/g, '');
+                document.execCommand('insertText', false, text);
+            }
+            
+            if (currentValue.length === 0 && event.key !== 'A') {
+                event.preventDefault();
+                return false;
+            } else if (currentValue.length === 1 && event.key !== 'T') {
+                event.preventDefault();
+                return false;
+            } else if (currentValue.length === 2 && event.key !== 'S') {
+                event.preventDefault();
+                return false;
+            } else if (currentValue.length === 3 && event.key !== '0') {
+                event.preventDefault();
+                return false;
+            } else if (currentValue.length >= 4 && currentValue.length < 7) {
+                if (!/^\d$/.test(event.key)) {
+                    event.preventDefault();
+                    return false;
+                }
+                
+                if (currentValue.length === 4 && currentValue[4] === '0' && event.key === '0') {
+                    event.preventDefault();
+                    return false;
+                }
+            } else if (currentValue.length >= 7) {
+                event.preventDefault();
+                return false;
+            }
+            
+            return true;
+        }
+
+        function preventExcessCharsForName(event, element, max) {
+            const currentValue = element.value;
+            const charCountExcludingSpaces = getCharCountExcludingSpaces(currentValue);
+            
+            if (event.key === "Backspace" || 
+                event.key === "Delete" || 
+                event.key === "ArrowLeft" || 
+                event.key === "ArrowRight" || 
+                event.key === "Tab" ||
+                event.ctrlKey || 
+                event.metaKey) {
+                return true;
+            }
+            
+            if (event.key === " " && currentValue.length === 0) {
+                event.preventDefault();
+                return false;
+            }
+            
+            if (event.key === " " && currentValue.length > 0 && currentValue[currentValue.length-1] === " ") {
+                event.preventDefault();
+                return false;
+            }
+            
+            if (charCountExcludingSpaces >= max && event.key !== " ") {
+                event.preventDefault();
+                return false;
+            }
+            
+            if (!/^[a-zA-Z\s]$/.test(event.key)) {
+                event.preventDefault();
+                return false;
+            }
+            
+            return true;
+        }
+
+        function preventExcessCharsForOtherAsset(event, element, max) {
+            const currentValue = element.value;
+            const charCountExcludingSpaces = getCharCountExcludingSpaces(currentValue);
+            
+            if (event.key === "Backspace" || 
+                event.key === "Delete" || 
+                event.key === "ArrowLeft" || 
+                event.key === "ArrowRight" || 
+                event.key === "Tab" ||
+                event.ctrlKey || 
+                event.metaKey) {
+                return true;
+            }
+            
+            if (event.key === " " && currentValue.length === 0) {
+                event.preventDefault();
+                return false;
+            }
+            
+            if (event.key === " " && currentValue.length > 0 && currentValue[currentValue.length-1] === " ") {
+                event.preventDefault();
+                return false;
+            }
+            
+            if (charCountExcludingSpaces >= max && event.key !== " ") {
+                event.preventDefault();
+                return false;
+            }
+            
+            if (!/^[a-zA-Z\s]$/.test(event.key)) {
+                event.preventDefault();
+                return false;
+            }
+            
+            return true;
+        }
+
+        function preventExcessCharsForReason(event, element) {
+            const currentValue = element.value;
+            const charCountExcludingSpaces = getCharCountExcludingSpaces(currentValue);
+            
+            if (event.key === "Backspace" || 
+                event.key === "Delete" || 
+                event.key === "ArrowLeft" || 
+                event.key === "ArrowRight" || 
+                event.key === "Tab" ||
+                event.ctrlKey || 
+                event.metaKey) {
+                return true;
+            }
+            
+            if (event.key === " " && currentValue.length === 0) {
+                event.preventDefault();
+                return false;
+            }
+            
+            if (event.key === " " && currentValue.length > 0 && currentValue[currentValue.length-1] === " ") {
+                event.preventDefault();
+                return false;
+            }
+            
+            if (charCountExcludingSpaces >= 500 && event.key !== " ") {
+                event.preventDefault();
+                return false;
+            }
+            
+            if (!/^[a-zA-Z0-9\s.,!?()-]$/.test(event.key)) {
+                event.preventDefault();
+                return false;
+            }
+            
+            if (!/[a-zA-Z]/.test(currentValue) && !/[a-zA-Z]/.test(event.key)) {
+                event.preventDefault();
+                return false;
+            }
+            
+            return true;
+        }
+
+        function handleNamePaste(e) {
+            e.preventDefault();
+            
+            let pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            pastedText = pastedText.trim();
+            pastedText = pastedText.replace(/[^a-zA-Z\s]/g, '');
+            pastedText = pastedText.replace(/\s+/g, ' ');
+            
+            const currentValue = e.target.value;
+            const newValue = currentValue + pastedText;
+            const charCountExcludingSpaces = getCharCountExcludingSpaces(newValue);
+            const max = 60;
+            
+            if (charCountExcludingSpaces <= max) {
+                const start = e.target.selectionStart;
+                const end = e.target.selectionEnd;
+                e.target.value = currentValue.substring(0, start) + pastedText + currentValue.substring(end);
+                
+                const inputEvent = new Event('input', { bubbles: true });
+                e.target.dispatchEvent(inputEvent);
+                
+                e.target.selectionStart = e.target.selectionEnd = start + pastedText.length;
+            }
+        }
+
+        function handleOtherAssetPaste(e) {
+            e.preventDefault();
+            
+            let pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            pastedText = pastedText.trim();
+            pastedText = pastedText.replace(/[^a-zA-Z\s]/g, '');
+            pastedText = pastedText.replace(/\s+/g, ' ');
+            
+            const currentValue = e.target.value;
+            const newValue = currentValue + pastedText;
+            const charCountExcludingSpaces = getCharCountExcludingSpaces(newValue);
+            const max = 50;
+            
+            if (charCountExcludingSpaces <= max) {
+                const start = e.target.selectionStart;
+                const end = e.target.selectionEnd;
+                e.target.value = currentValue.substring(0, start) + pastedText + currentValue.substring(end);
+                
+                const inputEvent = new Event('input', { bubbles: true });
+                e.target.dispatchEvent(inputEvent);
+                
+                e.target.selectionStart = e.target.selectionEnd = start + pastedText.length;
+            }
+        }
+
+        function handleReasonPaste(e) {
+            e.preventDefault();
+            
+            let pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            pastedText = pastedText.trim();
+            pastedText = pastedText.replace(/[^a-zA-Z0-9\s.,!?()-]/g, '');
+            pastedText = pastedText.replace(/\s+/g, ' ');
+            
+            const currentValue = e.target.value;
+            const newValue = currentValue + pastedText;
+            const charCountExcludingSpaces = getCharCountExcludingSpaces(newValue);
+            const max = 500;
+            
+            if (!/[a-zA-Z]/.test(newValue)) {
+                return;
+            }
+            
+            if (charCountExcludingSpaces <= max) {
+                const start = e.target.selectionStart;
+                const end = e.target.selectionEnd;
+                e.target.value = currentValue.substring(0, start) + pastedText + currentValue.substring(end);
+                
+                const inputEvent = new Event('input', { bubbles: true });
+                e.target.dispatchEvent(inputEvent);
+                
+                e.target.selectionStart = e.target.selectionEnd = start + pastedText.length;
+            }
+        }
+
+        document.getElementById('employeeId').addEventListener('keydown', validateEmployeeIdInput);
+        document.getElementById('employeeId').addEventListener('input', function() {
+            validateEmployeeId(this);
+        });
+
+        document.getElementById('employeeName').addEventListener('keydown', function(event) {
+            return preventExcessCharsForName(event, this, 60);
+        });
+        
+        document.getElementById('otherAsset').addEventListener('keydown', function(event) {
+            return preventExcessCharsForOtherAsset(event, this, 50);
+        });
+
+        document.getElementById('reason').addEventListener('keydown', function(event) {
+            return preventExcessCharsForReason(event, this);
+        });
+
+        document.getElementById('employeeName').addEventListener('paste', handleNamePaste);
+        document.getElementById('otherAsset').addEventListener('paste', handleOtherAssetPaste);
+        document.getElementById('reason').addEventListener('paste', handleReasonPaste);
+
+        document.getElementById('employeeName').addEventListener('input', function() {
+            if (this.value.trim() === '') {
+                this.value = '';
+            }
+            validateNameField(this, 'employeeNameError', 5, 60);
+        });
+
+        document.getElementById('otherAsset').addEventListener('input', function() {
+            if (this.value.trim() === '') {
+                this.value = '';
+            }
+            validateOtherAssetField(this, 'otherAssetError', 5, 50);
+        });
+
+        document.getElementById('reason').addEventListener('input', function() {
+            if (this.value.trim() === '') {
+                this.value = '';
+            }
+            validateReasonField(this, 'reasonError');
+        });
+
+        document.getElementById('assetType').addEventListener('change', function() {
+            const otherAssetGroup = document.getElementById('otherAssetGroup');
+            otherAssetGroup.style.display = this.value === 'other' ? 'block' : 'none';
+            if (this.value !== 'other') {
+                document.getElementById('otherAsset').value = '';
+                document.getElementById('otherAsset').classList.remove('error');
+                document.getElementById('otherAssetError').style.display = 'none';
+            }
+            updateSubmitButton();
+        });
+
+        async function submitRequest() {
+            const employeeId = document.getElementById('employeeId').value;
+            const employeeName = document.getElementById('employeeName').value;
+            const assetType = document.getElementById('assetType').value;
+            const otherAsset = document.getElementById('otherAsset').value;
+            const reason = document.getElementById('reason').value;
+
+            const employeeIdPattern = /^ATS0(?!000)\d{3}$/;
+            if (!employeeIdPattern.test(employeeId) || 
+                getCharCountExcludingSpaces(employeeName) < 5 ||
+                getCharCountExcludingSpaces(employeeName) > 60 ||
+                !/^[a-zA-Z\s]*$/.test(employeeName) ||
+                (assetType === 'other' && (
+                    getCharCountExcludingSpaces(otherAsset) < 5 ||
+                    getCharCountExcludingSpaces(otherAsset) > 50 ||
+                    !/^[a-zA-Z\s]*$/.test(otherAsset)
+                )) ||
+                getCharCountExcludingSpaces(reason) < 5 ||
+                getCharCountExcludingSpaces(reason) > 500 ||
+                !/[a-zA-Z]/.test(reason)) {
+                alert('Please fix all validation errors before submitting');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/api/requests', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        employeeId,
+                        employeeName,
+                        assetType,
+                        otherAsset: assetType === 'other' ? otherAsset : '',
+                        reason
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error);
+                }
+
+                document.getElementById('employeeId').value = '';
+                document.getElementById('employeeName').value = '';
+                document.getElementById('assetType').selectedIndex = 0;
+                document.getElementById('otherAsset').value = '';
+                document.getElementById('otherAssetGroup').style.display = 'none';
+                document.getElementById('reason').value = '';
+                updateSubmitButton();
+                
+                alert('Request submitted successfully!');
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+    </script>
+</body>
+</html>
