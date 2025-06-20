@@ -1,0 +1,60 @@
+version: "3.9"
+
+services:
+  # ----------------------- PostgreSQL ------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: assets_postgres
+    ports:
+      - "5435:5432"                # host:container
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: asset_management
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql 
+    networks: [assets_net]
+
+  # ----------------------- Node.js API -----------------------------------
+  backend:
+    build: ./Backend               # uses Backend/Dockerfile
+    container_name: assets_backend
+    ports:
+      - "3006:3006"
+    depends_on:
+      - postgres
+    environment:
+      PGUSER: postgres
+      PGPASSWORD: admin123
+      PGHOST: postgres
+      PGDATABASE: asset_management
+      PGPORT: 5432
+    networks: [assets_net]
+
+  # ----------------------- Employee portal -------------------------------
+  employee-assets:
+    build: ./Employee-Assets       # uses Employee-Assets/Dockerfile
+    container_name: employee_assets_ui
+    ports:
+      - "8107:80"                  # host 8107 → nginx 80
+    depends_on:
+      - backend
+    networks: [assets_net]
+
+  # ----------------------- HR portal -------------------------------------
+  hr-assets:
+    build: ./HR-Assets             # uses HR-Assets/Dockerfile
+    container_name: hr_assets_ui
+    ports:
+      - "8108:80"                  # host 8108 → nginx 80
+    depends_on:
+      - backend
+    networks: [assets_net]
+
+volumes:
+  pgdata:
+
+networks:
+  assets_net:
+
