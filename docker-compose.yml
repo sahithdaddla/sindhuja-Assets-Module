@@ -6,7 +6,7 @@ services:
     image: postgres:16-alpine
     container_name: assets_postgres
     ports:
-      - "5435:5432"                # host:container
+      - "5203:5432"                # host:container
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin123
@@ -21,7 +21,7 @@ services:
     build: ./Backend               # uses Backend/Dockerfile
     container_name: assets_backend
     ports:
-      - "3006:3006"
+      - "3203:3203"
     depends_on:
       - postgres
     environment:
@@ -37,7 +37,7 @@ services:
     build: ./Employee-Assets       # uses Employee-Assets/Dockerfile
     container_name: employee_assets_ui
     ports:
-      - "8107:80"                  # host 8107 → nginx 80
+      - "8006:80"                  # host 8107 → nginx 80
     depends_on:
       - backend
     networks: [assets_net]
@@ -47,7 +47,7 @@ services:
     build: ./HR-Assets             # uses HR-Assets/Dockerfile
     container_name: hr_assets_ui
     ports:
-      - "8108:80"                  # host 8108 → nginx 80
+      - "8007:80"                  # host 8108 → nginx 80
     depends_on:
       - backend
     networks: [assets_net]
