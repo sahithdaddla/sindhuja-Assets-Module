@@ -662,7 +662,7 @@
             
             try {
                 const response = await fetch(
-                    `http://3.85.61.23:3203/api/requests?page=${currentPage}&status=${statusFilter}&search=${encodeURIComponent(searchTerm)}`
+                    `http://51.21.169.171:3203/api/requests?page=${currentPage}&status=${statusFilter}&search=${encodeURIComponent(searchTerm)}`
                 );
                 if (!response.ok) throw new Error('Failed to fetch requests');
                 
@@ -680,7 +680,7 @@
 
         async function updateStats() {
             try {
-                const response = await fetch('http://3.85.61.23:3203/api/stats');
+                const response = await fetch('http://51.21.169.171:3203/api/stats');
                 if (!response.ok) throw new Error('Failed to fetch stats');
                 
                 const stats = await response.json();
@@ -735,7 +735,7 @@
 
         async function viewRequestDetails(requestId) {
             try {
-                const response = await fetch(`http://3.85.61.23:3203/api/requests/${requestId}`);
+                const response = await fetch(`http://51.21.169.171:3203/api/requests/${requestId}`);
                 if (!response.ok) throw new Error('Failed to fetch request details');
                 
                 const request = await response.json();
@@ -861,7 +861,7 @@
             
             confirmButton.onclick = async function() {
                 try {
-                    const response = await fetch(`http://3.85.61.23:3203/api/requests/${requestId}`);
+                    const response = await fetch(`http://51.21.169.171:3203/api/requests/${requestId}`);
                     if (!response.ok) throw new Error('Failed to fetch request');
                     const request = await response.json();
                     
@@ -890,7 +890,7 @@
             
             confirmButton.onclick = async function() {
                 try {
-                    const response = await fetch(`http://3.85.61.23:3203/api/requests/${requestId}`);
+                    const response = await fetch(`http://51.21.169.171:3203/api/requests/${requestId}`);
                     if (!response.ok) throw new Error('Failed to fetch request');
                     const request = await response.json();
                     
@@ -929,7 +929,7 @@
 
         async function clearAllRecords() {
             try {
-                const response = await fetch('http://3.85.61.23:3203/api/requests', {
+                const response = await fetch('http://51.21.169.171:3203/api/requests', {
                     method: 'DELETE'
                 });
                 
@@ -945,7 +945,7 @@
 
         async function updateRequestStatus(requestId, newStatus) {
             try {
-                const response = await fetch(`http://3.85.61.23:3203/api/requests/${requestId}`, {
+                const response = await fetch(`http://51.21.169.171:3203/api/requests/${requestId}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ status: newStatus })
