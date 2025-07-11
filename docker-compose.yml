@@ -37,7 +37,7 @@ services:
     build: ./Employee-Assets       # uses Employee-Assets/Dockerfile
     container_name: employee_assets_ui
     ports:
-      - "8107:80"                  # host 8107 → nginx 80
+      - "8141:80"                  # host 8107 → nginx 80
     depends_on:
       - backend
     networks: [assets_net]
@@ -47,7 +47,7 @@ services:
     build: ./HR-Assets             # uses HR-Assets/Dockerfile
     container_name: hr_assets_ui
     ports:
-      - "8108:80"                  # host 8108 → nginx 80
+      - "8140:80"                  # host 8108 → nginx 80
     depends_on:
       - backend
     networks: [assets_net]
